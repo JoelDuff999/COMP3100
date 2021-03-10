@@ -45,24 +45,34 @@ public class ds_client_test {
     	String message;
     	
     	//Handshake
+		//Print HELO to the console
     	System.out.println("C: HELO");
+		//Send HELO to the server.
     	socket.write("HELO");
+		//Server should send us one word back (OK), read a word and see if we received OK.
     	message = socket.readWord();
     	if (!message.equals("OK")) {
     		socket.close();
+			//Throw an error if we don't get OK.
     		throw new IOException("Handshake failed.\n(HELO did not recieve OK, received " + message + " instead.)");
     	}
+		
+		//Print on the console that we received OK and are sending AUTH.
     	System.out.println("S: OK\nC: AUTH Group_21");
+		//Send AUTH
     	socket.write("AUTH Group_21");
+		//Read response (Should be OK)
     	message = socket.readWord();
     	if (!message.equals("OK")) {
     		socket.close();
+			//Throw an error if we don't get OK
     		throw new IOException("Handshake failed.\n(AUTH refused. OK expected, " + message + "received.)");
     	}
     	System.out.println("S: OK");
     	
     	//TODO Read ds-system.xml
     	
+		//Finish the handshake.
     	//System.out.println("C: REDY");
     	//socket.write("REDY");
     	
@@ -73,7 +83,7 @@ public class ds_client_test {
     /**
 	 * Defunct
      * Assumes the first character is a letter in order to enforce blocking.
-     */
+     *
     public static String readWord(BufferedReader in) throws IOException {
     	String ret = Character.toString((char) in.read());
     	int ch;
@@ -85,7 +95,7 @@ public class ds_client_test {
     		ret = ret + Character.toString((char) ch);
     	}
     	return ret;
-    }
+    }*/
     
     /**
      * BLOCKING
