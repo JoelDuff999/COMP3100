@@ -20,8 +20,6 @@ import java.io.File;
 
 public class ds_client_test {
     public static void main(String[] args) throws UnknownHostException, IOException {
-        //TODO MANDATORY. Accept -a argument (scheduling algorithm name).
-        //TODO MANDATORY Accept -p argument (port number).
        
         boolean verbose = false;
         HashMap<String,String> parsedArgs = new HashMap<String,String>();
@@ -50,6 +48,14 @@ public class ds_client_test {
                     i++;
                     parsedArgs.put("syspath", args[i]);
                     break;
+                 
+                case "-h":
+               	System.out.println("-p : Sets the port the client is to connect to. (Default being port 50,000)");
+               	System.out.println("-a : Sets the algorithm that will be used by the client. (Default is set to All-to-Largest");
+               	System.out.println("-v : Sets the communication between the Client and Server to Visible/Hidden. (Default is Visible)");
+               	System.out.println("-path: Sets the Path to System.xml document.");
+               	System.exit(0);
+               	break;
 
                 default:
                     //Debug string. Should not occur.
