@@ -1,6 +1,7 @@
 package main;
 
 import java.io.BufferedReader;
+import java.net.ConnectException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -15,7 +16,13 @@ class Connection {
     private BufferedReader in;
     
     public Connection(String ip, int port) throws IOException, UnknownHostException {
-        socket = new Socket(ip, port);
+		try {
+			socket = new Socket(ip, port);
+		} catch (ConnectException e) {
+			System.err.println("Connection refused on address " + ip + " and port " + port + ".\nIs the server running with these settings?");
+			System.exit(-1);
+		}
+			
         out = new PrintStream(socket.getOutputStream());
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
