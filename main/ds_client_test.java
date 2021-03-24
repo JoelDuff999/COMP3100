@@ -1,6 +1,8 @@
 package main;
 
 import main.Connection;
+import main.Server;
+import main.ServerCluster;
 
 //Sockets
 import java.io.BufferedReader;
@@ -15,6 +17,7 @@ import java.io.PrintStream;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import java.io.File;
 
@@ -106,11 +109,15 @@ public class ds_client_test {
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(xml);
             doc.getDocumentElement().normalize();
-            
-            NodeList servers = doc.getElementsByTagName("servers");
-            for (int i = 0; i < servers.getLength(); i++) {
+
+            NodeList serverlist = doc.getElementsByTagName("server");
+			
+			ServerCluster servers = new ServerCluster(serverlist.getLength());
+			//System.out.println(serverlist.item(0));
+			//System.out.println(serverlist.item(0).getNodeType());
+            for (int i = 0; i < serverlist.getLength(); i++) {
                 //PARSE SERVERS
-                continue;
+				servers.createServer((Element)serverlist.item(i));
             }
         } catch (Exception e) {
             System.err.println(e);
