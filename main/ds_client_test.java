@@ -102,6 +102,10 @@ public class ds_client_test {
         System.out.println("S: OK");
         
         //TODO Read ds-system.xml
+        //Finish the handshake.
+        System.out.println("C: REDY");
+        socket.write("REDY");
+        System.out.println(socket.readWord());
         
         try {
             File xml = new File(parsedArgs.get("syspath"));//TODO VERIFY THIS ADDRESS
@@ -119,14 +123,13 @@ public class ds_client_test {
                 //PARSE SERVERS
 				servers.createServer((Element)serverlist.item(i));
             }
+            servers.sortedList();
         } catch (Exception e) {
             System.err.println(e);
         }
         
-        //Finish the handshake.
-        System.out.println("C: REDY");
-        socket.write("REDY");
-        System.out.println(socket.readWord());
+        
+        
         socket.close();
 
         return;

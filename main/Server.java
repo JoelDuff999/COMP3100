@@ -8,7 +8,7 @@ public class Server {
 	private int bootupTime;
 	private int hourlyRateMS;//Hourly rate IN MILLIUNITS.
 	private float hourlyRate;
-	private int coreCount;
+	public int coreCount;
 	private int memory;
 	private int disk;
 
