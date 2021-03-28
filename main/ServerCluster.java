@@ -21,23 +21,38 @@ public class ServerCluster {
     }
 
     public void sortedList(){
-        /*While (servers != null) {
 
-        }*/
-        sorted = new ArrayList<Integer>(servers.size());
+        System.out.println(servers.size());
+        sorted = new ArrayList<Integer>();
+        List<Integer> temp = new ArrayList<Integer>();//Core counts for sroting. Discard when function ends.
+
+        System.out.println(sorted.size());
+        int j = 0;
         for (Server s : servers) {
             System.out.println(s.coreCount);
             for (int i = 0; i < servers.size(); i++){
-                System.out.println(i);
-                if (i > sorted.size() || s.coreCount > sorted.get(i)){ //might not be null
-                    System.out.println("true");
-                    sorted.add(i, s.coreCount);
+                System.out.println(sorted.toString());
+                if (i >= sorted.size()) {
+                    temp.add(s.coreCount);
+                    sorted.add(j);
+                    break;
+                }
+
+                if (s.coreCount > temp.get(i)) {
+                    temp.add(i, s.coreCount);
+                    sorted.add(i, j);
+                    break;
                 }
             }
+            j++;
         }
+
         System.out.println(sorted.toString());
         System.out.println(sorted.size());
-    }
 
+        for (Integer i : sorted) {
+            System.out.println(servers.get(i).coreCount);
+        }
+    }
 
 }
