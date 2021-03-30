@@ -27,11 +27,25 @@ public class ds_client_test {
         boolean verbose = false;
         HashMap<String,String> parsedArgs = new HashMap<String,String>();
         //Default values
-        parsedArgs.put("port", "50000");//
+        parsedArgs.put("port", "50000");//ds-server defaults to 500000, so the client will too.
         parsedArgs.put("-a", "atl");//AllToLargest
-        parsedArgs.put("syspath", "./ds_system.xml");
+        try {
+            parsedArgs.put("syspath", args[0]);
+            File xml = new File(parsedArgs.get("syspath"));
+            if (!xml.exists() || xml.isDirectory()) {
+                System.err.println(parsedArgs.get("syspath") + " is not a file!");
+                System.err.println("Please open ds-system.xml in the ds-server pre-compiled folder.\n");
+                usage();
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+            System.err.println();
+            usage();
+        }
+
         
-        for (int i = 0; i < args.length; i++) {
+        for (int i = 1; i < args.length; i++) {
             switch(args[i]) {
                 case "-p":
                     i++;
@@ -53,11 +67,7 @@ public class ds_client_test {
                     break;
                  
                 case "-h":
-               	System.out.println("-p : Sets the port the client is to connect to. (Default being port 50,000)");
-               	System.out.println("-a : Sets the algorithm that will be used by the client. (Default is set to All-to-Largest");
-               	System.out.println("-v : Sets the communication between the Client and Server to Visible/Hidden. (Default is Visible)");
-               	System.out.println("-path: Sets the Path to System.xml document.");
-               	System.exit(0);
+                    usage();
                	break;
 
                 default:
@@ -66,6 +76,8 @@ public class ds_client_test {
                     break;
             }
         }
+
+        if (parsedArgs.get("syspath").equals("")) { usage(); };
         
         /*Socket socket = new Socket("localhost", Integer.parseInt(parsedArgs.get("-p")));
         PrintStream out = new PrintStream(socket.getOutputStream());
@@ -125,7 +137,7 @@ public class ds_client_test {
             }
             servers.sortedList();
         } catch (Exception e) {
-            System.err.println(e);
+            System.err.println(e.getMessage());
         }
         
         
@@ -134,7 +146,17 @@ public class ds_client_test {
 
         return;
     }
-    
+
+    public static void usage() {
+        System.out.println("Usage:\n\tjava main.ds_client_test path-to-ds-system.xml [options]");
+        System.out.println("\nOptions:");
+        System.out.println("\t-p port\tSets the port the client is to connect to. (Default being port 50,000)");
+        System.out.println("\t-a\tSets the algorithm that will be used by the client. (Default is set to All-to-Largest");
+        System.out.println("\t-v\tSets the communication between the Client and Server to Visible/Hidden. (Default is Visible)");
+        System.out.println("\t-path: Sets the Path to System.xml document.");
+        System.exit(0);
+    }
+
     /**
      * Defunct
      * Assumes the first character is a letter in order to enforce blocking.
