@@ -150,6 +150,27 @@ public class ds_client_test {
                     JOBN_Handle(socket);
                     break;
 
+                case "JOBP":
+                    JOBN_Handle(socket);
+                    break;
+                
+                case "JCPL": //TO DO: Check on this
+                    readMSG(4);
+                    socket.write("REDY");
+                    break;
+                
+                case "RESF":
+                    readMSG(3);
+                    break;
+
+                case "RESR":
+                    readMSG(3);
+                    break;
+
+                case "ERR": //TO DO: Check on this
+                    
+                    break;
+
                 case "NONE":
                     working = false;
                     socket.write("QUIT");
