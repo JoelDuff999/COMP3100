@@ -36,6 +36,13 @@ class Connection {
          * 
          */
     }
+
+    public void writeMSG(String message) {
+        String[] words = message.split(" ");
+        for (String word : words) {
+            write(word);
+        }
+    }
     
     //Avoid using this.
     public int read() throws IOException {
@@ -57,6 +64,20 @@ class Connection {
             ret = ret + Character.toString((char) ch);
         }
         return ret;
+    }
+
+    /**
+     * Reads several words.
+     * Does not have to read an entire message, but that is the intended use.
+     * @param len The length of the message to read, in words.
+     * @return The message in an array of length len.
+     */
+    public String[] readMSG(int len) throws IOException {
+        String[] out = new String[len];
+        for (int i = 0; i < len; i++) {
+            out[i] = readWord();
+        }
+        return out;
     }
     
     public void close() throws IOException {

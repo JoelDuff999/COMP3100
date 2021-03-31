@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -22,9 +23,10 @@ import org.w3c.dom.NodeList;
 import java.io.File;
 
 public class ds_client_test {
+    static boolean verbose;
     public static void main(String[] args) throws UnknownHostException, IOException {
        
-        boolean verbose = false;
+        verbose = false;
         HashMap<String,String> parsedArgs = new HashMap<String,String>();
         //Default values
         parsedArgs.put("port", "50000");//ds-server defaults to 500000, so the client will too.
@@ -113,12 +115,6 @@ public class ds_client_test {
         }
         System.out.println("S: OK");
         
-        //TODO Read ds-system.xml
-        //Finish the handshake.
-        System.out.println("C: REDY");
-        socket.write("REDY");
-        System.out.println(socket.readWord());
-        
         try {
             File xml = new File(parsedArgs.get("syspath"));//TODO VERIFY THIS ADDRESS
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -139,12 +135,55 @@ public class ds_client_test {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
-        
-        
-        
+
+        //Handshake complete.
+        System.out.println("C: REDY");
+        socket.write("REDY");
+
+        boolean working = true;
+        while (working) {
+            message = socket.readWord();
+            System.out.println("S: >>> " + message);
+            if (verbose) { System.out.println("S: " + message); };
+
+            switch (message) {
+                case "JOBN":
+                    JOBN_Handle(socket);
+                    break;
+
+                case "NONE":
+                    working = false;
+                    socket.write("QUIT");
+                    if (verbose) { System.out.println("C: QUIT"); };
+                    continue;
+
+                default:
+                    break;
+            }
+        }
+
+        message = socket.readWord();
+        if (verbose) { System.out.println("S: " + message); };
         socket.close();
 
         return;
+    }
+
+    public static void JOBN_Handle(Connection socket) throws IOException {//TODO Deal with IOException.
+        String[] job = new String[] {
+                    socket.readWord(),
+                    socket.readWord(),
+                    socket.readWord(),
+                    socket.readWord(),
+                    socket.readWord(),
+                    socket.readWord()
+        };
+
+        socket.writeMSG("GETS Available " + job[4] + " " + job[5] + " " + job[6]);
+        if (verbose) { System.out.println("C: GETS Available " + job[4] + " " + job[5] + " " + job[6]); };
+
+        System.out.println(Arrays.toString(socket.readMSG(2)));
+
     }
 
     public static void usage() {
