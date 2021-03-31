@@ -143,7 +143,6 @@ public class ds_client_test {
         boolean working = true;
         while (working) {
             message = socket.readWord();
-            System.out.println("S: >>> " + message);
             if (verbose) { System.out.println("S: " + message); };
 
             switch (message) {
@@ -179,8 +178,8 @@ public class ds_client_test {
                     socket.readWord()
         };
 
-        socket.writeMSG("GETS Available " + job[4] + " " + job[5] + " " + job[6]);
-        if (verbose) { System.out.println("C: GETS Available " + job[4] + " " + job[5] + " " + job[6]); };
+        socket.write("GETS Capable " + job[3] + " " + job[4] + " " + job[5]);
+        if (verbose) { System.out.println("C: GETS Capable " + job[3] + " " + job[4] + " " + job[5]); };
 
         System.out.println(Arrays.toString(socket.readMSG(2)));
 

@@ -37,12 +37,7 @@ class Connection {
          */
     }
 
-    public void writeMSG(String message) {
-        String[] words = message.split(" ");
-        for (String word : words) {
-            write(word);
-        }
-    }
+    
     
     //Avoid using this.
     public int read() throws IOException {
