@@ -23,6 +23,7 @@ import org.w3c.dom.NodeList;
 import java.io.File;
 
 public class ds_client_test {
+    private static final String DOT = ".";
     static boolean verbose;
     public static void main(String[] args) throws UnknownHostException, IOException {
        
@@ -190,6 +191,7 @@ public class ds_client_test {
     }
 
     public static void JOBN_Handle(Connection socket) throws IOException {//TODO Deal with IOException.
+        //submitTime, jobID, estRuntime, core, memory, disk
         String[] job = new String[] {
                     socket.readWord(),
                     socket.readWord(),
@@ -198,11 +200,68 @@ public class ds_client_test {
                     socket.readWord(),
                     socket.readWord()
         };
+        if (verbose) { System.out.println(" " + Arrays.toString(job)); };
 
         socket.write("GETS Capable " + job[3] + " " + job[4] + " " + job[5]);
         if (verbose) { System.out.println("C: GETS Capable " + job[3] + " " + job[4] + " " + job[5]); };
 
-        System.out.println(Arrays.toString(socket.readMSG(2)));
+        String[] data = socket.readMSG(3);
+        System.out.println(Arrays.toString(data));
+        //int count = Integer.parseInt(socket.readMSG(3)[1]);
+
+        socket.write("OK");
+
+        String message;
+
+        //size,
+        String[] largest = new String[] {"0", "", ""};
+        String[] temp;
+        for (int i = Integer.parseInt(data[1]); i > 0; i--) {
+            message = socket.readWord();
+            System.out.print(message);
+            System.out.print(", ");
+            if (message.equals(".")) {
+                if (verbose) { System.out.println("C: OK"); };
+                socket.write("OK");
+                break;
+            }
+
+
+            temp = socket.readMSG(8);
+            System.out.println(Arrays.toString(temp));
+            System.out.println(temp[3]);
+            System.out.println(temp[7]);
+            System.out.println(largest[0]);
+            //TODO Restrict to largest server type.
+            if (Integer.parseInt(temp[3]) > Integer.parseInt(largest[0]) || (Integer.parseInt(temp[3]) == Integer.parseInt(largest[0]) && Integer.parseInt(temp[7]) == 0)) {
+                largest[0] = temp[3];
+                largest[1] = message;
+                largest[2] = temp[0];
+            }
+
+//                message = socket.readWord();
+//                System.out.print(message);
+//                System.out.print(", ");
+
+        }
+
+        if (verbose) { System.out.println("C: OK"); };
+        socket.write("OK");
+        message = socket.readWord();
+        System.out.println(message);
+
+        if (verbose) { System.out.println("C: SCHD " + job[1] + " " + largest[1] + " " + largest[2]); };
+        socket.write("SCHD " + job[1] + " " + largest[1] + " " + largest[2]);
+
+        message = socket.readWord();
+        if (verbose) { System.out.println("S: " + message); };
+
+        if (verbose) { System.out.println("C: REDY"); };
+        socket.write("REDY");
+
+//        if (message.equals("OK")) {
+//
+//        }
 
     }
 

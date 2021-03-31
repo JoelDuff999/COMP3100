@@ -29,12 +29,6 @@ class Connection {
     
     public void write(String message) {
         out.print(message);
-        /*
-         * if (-n is set) {
-         *     out.println();
-         * }
-         * 
-         */
     }
 
     
@@ -53,7 +47,7 @@ class Connection {
         int ch;
         while (in.ready()) {
             ch = in.read();
-            if (ch == 32) {//Space
+            if (ch == 32 || ch == 10) {//Space or newline
                 return ret;
             }
             ret = ret + Character.toString((char) ch);

@@ -24,7 +24,7 @@ public class ServerCluster {
 
         System.out.println(servers.size());
         sorted = new ArrayList<Integer>();
-        List<Integer> temp = new ArrayList<Integer>();//Core counts for sroting. Discard when function ends.
+        List<Integer> temp = new ArrayList<Integer>();//Core counts for sorting. Discard when function ends.
 
         System.out.println(sorted.size());
         int j = 0;
