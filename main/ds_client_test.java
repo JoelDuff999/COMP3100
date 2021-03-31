@@ -155,16 +155,16 @@ public class ds_client_test {
                     break;
                 
                 case "JCPL": //TO DO: Check on this
-                    readMSG(4);
+                    socket.readMSG(4);
                     socket.write("REDY");
                     break;
                 
                 case "RESF":
-                    readMSG(3);
+                    socket.readMSG(3);
                     break;
 
                 case "RESR":
-                    readMSG(3);
+                    socket.readMSG(3);
                     break;
 
                 case "ERR": //TO DO: Check on this
