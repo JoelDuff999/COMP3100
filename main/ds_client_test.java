@@ -32,6 +32,8 @@ public class ds_client_test {
         //Default values
         parsedArgs.put("port", "50000");//ds-server defaults to 500000, so the client will too.
         parsedArgs.put("-a", "atl");//AllToLargest
+
+        //This try-catch just checks that ds-system.xml exists and throws an error if it does not.
         try {
             parsedArgs.put("syspath", args[0]);
             File xml = new File(parsedArgs.get("syspath"));
@@ -47,7 +49,7 @@ public class ds_client_test {
             usage();
         }
 
-        
+        //Argument parsing. See usage or technical documentation for individual details.
         for (int i = 1; i < args.length; i++) {
             switch(args[i]) {
                 case "-p":
@@ -80,12 +82,10 @@ public class ds_client_test {
             }
         }
 
+        //If no ds-system.xml is parsed, print usage.
         if (parsedArgs.get("syspath").equals("")) { usage(); };
-        
-        /*Socket socket = new Socket("localhost", Integer.parseInt(parsedArgs.get("-p")));
-        PrintStream out = new PrintStream(socket.getOutputStream());
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));*/
-        
+
+        //Connection objects are a nice wrapper for Sockets, BufferedReaders and PrintStreams.
         Connection socket = new Connection("localhost", Integer.parseInt(parsedArgs.get("port")));
         
         String message;
@@ -115,9 +115,10 @@ public class ds_client_test {
             throw new IOException("Handshake failed.\n(AUTH refused. OK expected, " + message + "received.)");
         }
         System.out.println("S: OK");
-        
+
+        //Parse ds-system.xml
         try {
-            File xml = new File(parsedArgs.get("syspath"));//TODO VERIFY THIS ADDRESS
+            File xml = new File(parsedArgs.get("syspath"));
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(xml);
@@ -136,11 +137,13 @@ public class ds_client_test {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+        //Finished parsing.
 
         //Handshake complete.
         System.out.println("C: REDY");
         socket.write("REDY");
 
+        //Parse server commands.
         boolean working = true;
         while (working) {
             message = socket.readWord();
@@ -155,7 +158,7 @@ public class ds_client_test {
                     JOBN_Handle(socket);
                     break;
                 
-                case "JCPL": //TO DO: Check on this
+                case "JCPL": //TODO: Check on this
                     socket.readMSG(4);
                     socket.write("REDY");
                     break;
@@ -168,7 +171,7 @@ public class ds_client_test {
                     socket.readMSG(3);
                     break;
 
-                case "ERR": //TO DO: Check on this
+                case "ERR": //TODO: Check on this
                     
                     break;
 
@@ -202,13 +205,16 @@ public class ds_client_test {
         };
         if (verbose) { System.out.println(" " + Arrays.toString(job)); };
 
+        //GET a DATA stream of servers cabable of fulfilling the jobs core, memory and disk requirements.
         socket.write("GETS Capable " + job[3] + " " + job[4] + " " + job[5]);
         if (verbose) { System.out.println("C: GETS Capable " + job[3] + " " + job[4] + " " + job[5]); };
 
+        //The server returns metadata about the incoming datastream.
         String[] data = socket.readMSG(3);
         System.out.println(Arrays.toString(data));
         //int count = Integer.parseInt(socket.readMSG(3)[1]);
 
+        //We are ready to accept the datastream.
         socket.write("OK");
 
         String message;
@@ -220,6 +226,8 @@ public class ds_client_test {
             message = socket.readWord();
             System.out.print(message);
             System.out.print(", ");
+            //If the end of the datastream is reached.
+            //Signalled by the server sending a period (.)
             if (message.equals(".")) {
                 if (verbose) { System.out.println("C: OK"); };
                 socket.write("OK");
@@ -233,6 +241,7 @@ public class ds_client_test {
             System.out.println(temp[7]);
             System.out.println(largest[0]);
             //TODO Restrict to largest server type.
+            //TODO Check for server failure.
             if (Integer.parseInt(temp[3]) > Integer.parseInt(largest[0]) || (Integer.parseInt(temp[3]) == Integer.parseInt(largest[0]) && Integer.parseInt(temp[7]) == 0)) {
                 largest[0] = temp[3];
                 largest[1] = message;
@@ -250,6 +259,7 @@ public class ds_client_test {
         message = socket.readWord();
         System.out.println(message);
 
+        //SCHeDule a job to the largest server.
         if (verbose) { System.out.println("C: SCHD " + job[1] + " " + largest[1] + " " + largest[2]); };
         socket.write("SCHD " + job[1] + " " + largest[1] + " " + largest[2]);
 

@@ -32,14 +32,17 @@ class Connection {
     }
 
     
-    
+    //Reads one character at a time.
     //Avoid using this.
     public int read() throws IOException {
         return in.read();
     }
     
     /**
+     * Reads a whole word.
      * Assumes the first character is a letter in order to enforce blocking.
+     *
+     * @return A single word as a String.
      */
     //TODO Update to support -n
     public String readWord() throws IOException {
