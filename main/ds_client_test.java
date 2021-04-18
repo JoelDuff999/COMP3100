@@ -25,6 +25,8 @@ import java.io.File;
 public class ds_client_test {
     private static final String DOT = ".";
     static boolean verbose;
+    static boolean nl;
+    static String[] largest = new String[] {"0", "", ""};//Botched hack because GETS Capable is apparently equivalent to GETS Avail
     public static void main(String[] args) throws UnknownHostException, IOException {
        
         verbose = false;
@@ -32,6 +34,8 @@ public class ds_client_test {
         //Default values
         parsedArgs.put("port", "50000");//ds-server defaults to 500000, so the client will too.
         parsedArgs.put("-a", "atl");//AllToLargest
+        parsedArgs.put("syspath", "./ds-system.xml");
+        nl = true;//Hardcoded to true due to defective spec. Newlines were *NOT* supposed to be included.
 
         //This try-catch just checks that ds-system.xml exists and throws an error if it does not.
         try {
@@ -43,10 +47,10 @@ public class ds_client_test {
                 usage();
             }
         } catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            System.err.println("Path to ds-system.xml not provided. Defaulting to ./ds-system.xml");
+            //e.printStackTrace();
             System.err.println();
-            usage();
+            //usage();
         }
 
         //Argument parsing. See usage or technical documentation for individual details.
@@ -92,7 +96,7 @@ public class ds_client_test {
         
         //Handshake
         //Print HELO to the console
-        System.out.println("C: HELO");
+        if (verbose) { System.out.println("C: HELO"); };
         //Send HELO to the server.
         socket.write("HELO");
         //Server should send us one word back (OK), read a word and see if we received OK.
@@ -104,9 +108,11 @@ public class ds_client_test {
         }
         
         //Print on the console that we received OK and are sending AUTH.
-        System.out.println("S: OK\nC: AUTH Group_21");
+        //Verbosity ignored because this is important.
+        if (verbose) { System.out.println("S: OK"); };
+        System.out.println("C: AUTH " + System.getProperty("user.name"));
         //Send AUTH
-        socket.write("AUTH Group_21");
+        socket.write("AUTH " + System.getProperty("user.name"));
         //Read response (Should be OK)
         message = socket.readWord();
         if (!message.equals("OK")) {
@@ -140,7 +146,7 @@ public class ds_client_test {
         //Finished parsing.
 
         //Handshake complete.
-        System.out.println("C: REDY");
+        if (verbose) { System.out.println("C: REDY"); };
         socket.write("REDY");
 
         //Parse server commands.
@@ -211,7 +217,7 @@ public class ds_client_test {
 
         //The server returns metadata about the incoming datastream.
         String[] data = socket.readMSG(3);
-        System.out.println(Arrays.toString(data));
+        //System.out.println(Arrays.toString(data));
         //int count = Integer.parseInt(socket.readMSG(3)[1]);
 
         //We are ready to accept the datastream.
@@ -220,48 +226,54 @@ public class ds_client_test {
         String message;
 
         //size,
-        String[] largest = new String[] {"0", "", ""};
-        String[] temp;
-        for (int i = Integer.parseInt(data[1]); i > 0; i--) {
-            message = socket.readWord();
-            System.out.print(message);
-            System.out.print(", ");
-            //If the end of the datastream is reached.
-            //Signalled by the server sending a period (.)
-            if (message.equals(".")) {
-                if (verbose) { System.out.println("C: OK"); };
-                socket.write("OK");
-                break;
-            }
+        //String[] largest = new String[] {"0", "", ""};
+        if (largest[0].equals("0")) {
+            String[] temp;
+            for (int i = Integer.parseInt(data[1]); i > 0; i--) {
+                message = socket.readWord();
+                //System.out.print(message);
+                //System.out.print(", ");
+                //If the end of the datastream is reached.
+                //Signalled by the server sending a period (.)
+                if (message.equals(".")) {
+                    if (verbose) {
+                        System.out.println("C: OK");
+                    }
+                    ;
+                    socket.write("OK");
+                    break;
+                }
 
 
-            temp = socket.readMSG(8);
-            System.out.println(Arrays.toString(temp));
-            System.out.println(temp[3]);
-            System.out.println(temp[7]);
-            System.out.println(largest[0]);
-            //TODO Restrict to largest server type.
-            //TODO Check for server failure.
-            if (Integer.parseInt(temp[3]) > Integer.parseInt(largest[0]) || (Integer.parseInt(temp[3]) == Integer.parseInt(largest[0]) && Integer.parseInt(temp[7]) == 0)) {
-                largest[0] = temp[3];
-                largest[1] = message;
-                largest[2] = temp[0];
-            }
+                temp = socket.readMSG(8);
+                //System.out.println(Arrays.toString(temp));
+                //System.out.println(temp[3]);
+                //System.out.println(temp[7]);
+                //System.out.println(largest[0]);
+                //TODO Restrict to largest server type.
+                //TODO Check for server failure.
+                if (Integer.parseInt(temp[4]) > Integer.parseInt(largest[0])) {// || (Integer.parseInt(temp[4]) == Integer.parseInt(largest[0]) && Integer.parseInt(temp[7]) == 0)) {
+                    largest[0] = temp[3];
+                    largest[1] = message;
+                    largest[2] = temp[0];
+                }
 
 //                message = socket.readWord();
 //                System.out.print(message);
 //                System.out.print(", ");
 
+            }
         }
 
+        //Manually ignoring "." because wtf was I thinking but it's too late to fix now.
         if (verbose) { System.out.println("C: OK"); };
         socket.write("OK");
         message = socket.readWord();
-        System.out.println(message);
+        //System.out.println(message);
 
         //SCHeDule a job to the largest server.
         if (verbose) { System.out.println("C: SCHD " + job[1] + " " + largest[1] + " " + largest[2]); };
-        socket.write("SCHD " + job[1] + " " + largest[1] + " " + largest[2]);
+        socket.write("SCHD " + job[1] + " " + largest[1] + " 0");// + largest[2]);
 
         message = socket.readWord();
         if (verbose) { System.out.println("S: " + message); };

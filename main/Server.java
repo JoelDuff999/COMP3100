@@ -14,25 +14,25 @@ public class Server {
 
     //Accept list of args or whatever XML parser gives us.
     public Server(Element details) {
-		System.out.println(details.getAttribute("type"));
+		//System.out.println(details.getAttribute("type"));
 		tipe = details.getAttribute("type");
-		System.out.println(details.getAttribute("limit"));
+		//System.out.println(details.getAttribute("limit"));
 		limit = Integer.parseInt(details.getAttribute("limit"));
-		System.out.println(details.getAttribute("bootupTime"));
+		//System.out.println(details.getAttribute("bootupTime"));
 		bootupTime = Integer.parseInt(details.getAttribute("bootupTime"));
-		System.out.println(details.getAttribute("hourlyRate"));
+		//System.out.println(details.getAttribute("hourlyRate"));
 		hourlyRate = Float.parseFloat(details.getAttribute("hourlyRate"));
 		/*if (Float.parseFloat(details.getAttribute("hourlyRate"))*1000 != 0) {
 			throw new NumberFormatException(details.getAttribute("hourlyRate") + "has more than 3 digits in the mantissa!");
 		}
 		hourlyRateMS = (int)(Float.parseFloat(details.getAttribute("hourlyRate"))*1000);*/
-		System.out.println(details.getAttribute("coreCount"));
+		//System.out.println(details.getAttribute("coreCount"));
 		coreCount = Integer.parseInt(details.getAttribute("coreCount"));
-		System.out.println(details.getAttribute("memory"));
+		//System.out.println(details.getAttribute("memory"));
 		memory = Integer.parseInt(details.getAttribute("memory"));
-		System.out.println(details.getAttribute("disk"));
+		//System.out.println(details.getAttribute("disk"));
 		disk = Integer.parseInt(details.getAttribute("disk"));
-		System.out.println();
+		//System.out.println();
 
 	}
 }
