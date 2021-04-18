@@ -28,7 +28,7 @@ class Connection {
     }
     
     public void write(String message) {
-        out.print(message);
+        out.print(message + "\n");//TODO DELETE \n SPEC IS BAD.
     }
 
     
