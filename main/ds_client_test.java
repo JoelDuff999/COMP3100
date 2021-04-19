@@ -28,16 +28,17 @@ public class ds_client_test {
     static boolean nl;
     static String[] largest = new String[] {"0", "", ""};//Botched hack because GETS Capable is apparently equivalent to GETS Avail
     public static void main(String[] args) throws UnknownHostException, IOException {
-       
+
         verbose = false;
         HashMap<String,String> parsedArgs = new HashMap<String,String>();
         //Default values
         parsedArgs.put("port", "50000");//ds-server defaults to 500000, so the client will too.
         parsedArgs.put("-a", "atl");//AllToLargest
         parsedArgs.put("syspath", "./ds-system.xml");
-        nl = true;//Hardcoded to true due to defective spec. Newlines were *NOT* supposed to be included.
+        nl = false;
 
         //This try-catch just checks that ds-system.xml exists and throws an error if it does not.
+        //This error will be thrown if no arguments are provided. Ignore it.
         try {
             parsedArgs.put("syspath", args[0]);
             File xml = new File(parsedArgs.get("syspath"));
@@ -47,7 +48,8 @@ public class ds_client_test {
                 usage();
             }
         } catch (Exception e) {
-            System.err.println("Path to ds-system.xml not provided. Defaulting to ./ds-system.xml");
+            System.err.println("\nPath to ds-system.xml not provided. Defaulting to ./ds-system.xml");
+            System.err.println("This is expected for automated marking scripts which pass no arguments and will not impact functionality.");
             //e.printStackTrace();
             System.err.println();
             //usage();
@@ -79,6 +81,10 @@ public class ds_client_test {
                     usage();
                	break;
 
+                case "-n":
+                    nl = true;
+                    break;
+
                 default:
                     //Debug string. Should not occur.
                     System.err.println("Default called for " + args[i]);
@@ -96,9 +102,10 @@ public class ds_client_test {
         
         //Handshake
         //Print HELO to the console
+        System.out.println("xlarge2".compareTo("xlarge"));
         if (verbose) { System.out.println("C: HELO"); };
         //Send HELO to the server.
-        socket.write("HELO");
+        socket.write("HELO", nl);
         //Server should send us one word back (OK), read a word and see if we received OK.
         message = socket.readWord();
         if (!message.equals("OK")) {
@@ -112,7 +119,7 @@ public class ds_client_test {
         if (verbose) { System.out.println("S: OK"); };
         System.out.println("C: AUTH " + System.getProperty("user.name"));
         //Send AUTH
-        socket.write("AUTH " + System.getProperty("user.name"));
+        socket.write("AUTH " + System.getProperty("user.name"), nl);
         //Read response (Should be OK)
         message = socket.readWord();
         if (!message.equals("OK")) {
@@ -147,7 +154,7 @@ public class ds_client_test {
 
         //Handshake complete.
         if (verbose) { System.out.println("C: REDY"); };
-        socket.write("REDY");
+        socket.write("REDY", nl);
 
         //Parse server commands.
         boolean working = true;
@@ -166,7 +173,7 @@ public class ds_client_test {
                 
                 case "JCPL": //TODO: Check on this
                     socket.readMSG(4);
-                    socket.write("REDY");
+                    socket.write("REDY", nl);
                     break;
                 
                 case "RESF":
@@ -178,12 +185,11 @@ public class ds_client_test {
                     break;
 
                 case "ERR": //TODO: Check on this
-                    
                     break;
 
                 case "NONE":
                     working = false;
-                    socket.write("QUIT");
+                    socket.write("QUIT", nl);
                     if (verbose) { System.out.println("C: QUIT"); };
                     continue;
 
@@ -212,7 +218,7 @@ public class ds_client_test {
         if (verbose) { System.out.println(" " + Arrays.toString(job)); };
 
         //GET a DATA stream of servers cabable of fulfilling the jobs core, memory and disk requirements.
-        socket.write("GETS Capable " + job[3] + " " + job[4] + " " + job[5]);
+        socket.write("GETS Capable " + job[3] + " " + job[4] + " " + job[5], nl);
         if (verbose) { System.out.println("C: GETS Capable " + job[3] + " " + job[4] + " " + job[5]); };
 
         //The server returns metadata about the incoming datastream.
@@ -221,12 +227,14 @@ public class ds_client_test {
         //int count = Integer.parseInt(socket.readMSG(3)[1]);
 
         //We are ready to accept the datastream.
-        socket.write("OK");
+        socket.write("OK", nl);
 
         String message;
 
         //size,
         //String[] largest = new String[] {"0", "", ""};
+        //If the largest server hasn't been found, find the largest server.
+        //In practice, this finds the largest server overall by sending GETS when no servers have jobs.
         if (largest[0].equals("0")) {
             String[] temp;
             for (int i = Integer.parseInt(data[1]); i > 0; i--) {
@@ -235,24 +243,27 @@ public class ds_client_test {
                 //System.out.print(", ");
                 //If the end of the datastream is reached.
                 //Signalled by the server sending a period (.)
+                //This should never actually be called due to the for loop conditions,
+                //but I'm not going to delete it with so little time to test.
                 if (message.equals(".")) {
                     if (verbose) {
                         System.out.println("C: OK");
                     }
                     ;
-                    socket.write("OK");
+                    socket.write("OK", nl);
                     break;
                 }
 
 
                 temp = socket.readMSG(8);
-                //System.out.println(Arrays.toString(temp));
-                //System.out.println(temp[3]);
-                //System.out.println(temp[7]);
-                //System.out.println(largest[0]);
-                //TODO Restrict to largest server type.
+
                 //TODO Check for server failure.
-                if (Integer.parseInt(temp[4]) > Integer.parseInt(largest[0])) {// || (Integer.parseInt(temp[4]) == Integer.parseInt(largest[0]) && Integer.parseInt(temp[7]) == 0)) {
+                /*if (message.equals("xlarge") || message.equals("xlarge2")) {
+                    System.out.println("Largest");
+                    System.out.println(Arrays.toString(largest));
+                    System.out.println(Arrays.toString(new String[]{temp[3], message, temp[0]}));
+                }*/
+                if (Integer.parseInt(temp[3]) > Integer.parseInt(largest[0]) || (Integer.parseInt(temp[3]) == Integer.parseInt(largest[0]) && message.compareTo(largest[1]) < 0)) {
                     largest[0] = temp[3];
                     largest[1] = message;
                     largest[2] = temp[0];
@@ -263,23 +274,27 @@ public class ds_client_test {
 //                System.out.print(", ");
 
             }
+        } else {
+            for (int i = Integer.parseInt(data[1]); i > 0; i--) {
+                socket.readMSG(9);
+            }
         }
 
         //Manually ignoring "." because wtf was I thinking but it's too late to fix now.
         if (verbose) { System.out.println("C: OK"); };
-        socket.write("OK");
+        socket.write("OK", nl);
         message = socket.readWord();
         //System.out.println(message);
 
         //SCHeDule a job to the largest server.
-        if (verbose) { System.out.println("C: SCHD " + job[1] + " " + largest[1] + " " + largest[2]); };
-        socket.write("SCHD " + job[1] + " " + largest[1] + " 0");// + largest[2]);
+        if (verbose) { System.out.println("C: SCHD " + job[1] + " " + largest[1] + " 0"); };
+        socket.write("SCHD " + job[1] + " " + largest[1] + " 0", nl);// + largest[2]);
 
         message = socket.readWord();
         if (verbose) { System.out.println("S: " + message); };
 
         if (verbose) { System.out.println("C: REDY"); };
-        socket.write("REDY");
+        socket.write("REDY", nl);
 
 //        if (message.equals("OK")) {
 //
@@ -293,7 +308,8 @@ public class ds_client_test {
         System.out.println("\t-p port\tSets the port the client is to connect to. (Default being port 50,000)");
         System.out.println("\t-a\tSets the algorithm that will be used by the client. (Default is set to All-to-Largest");
         System.out.println("\t-v\tSets the communication between the Client and Server to Visible/Hidden. (Default is Visible)");
-        System.out.println("\t-path: Sets the Path to System.xml document.");
+        //System.out.println("\t-path: Sets the Path to System.xml document.");
+        System.out.println("\t-n\tNewline terminated message mode.");
         System.exit(0);
     }
 

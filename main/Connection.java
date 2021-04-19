@@ -27,8 +27,12 @@ class Connection {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
     
-    public void write(String message) {
-        out.print(message + "\n");//TODO DELETE \n SPEC IS BAD.
+    public void write(String message, boolean nl) {
+        if (nl) {
+            out.print(message + "\n");
+        } else {
+            out.print(message);
+        }
     }
 
     
